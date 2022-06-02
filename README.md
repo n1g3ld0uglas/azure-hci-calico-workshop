@@ -132,6 +132,10 @@ The IPAM plugin can be queried on the default Installation resource:
 kubectl get installation default -o go-template --template {{.spec.cni.ipam.type}}
 ```
 
+```
+kubectl exec -ti -n kube-system calicoctl -- /calicoctl get ippools --allow-version-mismatch
+```
+
 If your cluster is using Calico IPAM, the above command should return a result of ```Calico```.
 This might not work in Azure HCI since the install is managed by Microsoft. Please run this command:
 
