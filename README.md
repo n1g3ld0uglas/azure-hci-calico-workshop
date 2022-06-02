@@ -19,6 +19,12 @@ New-AksHciCluster -Name akshciclus001 -nodePoolName linuxnodepool -controlPlaneN
 - A single Load Balancer VM <br/>
 - A single Node Pool called linuxnodepool, containing a single Linux worker node (VM) <br/>  <br/>
 
+In my case, I will be deleting and recreating clusters regularly <br/>
+To delete an existing managed Kubernetes cluster, run this command:
+```
+Remove-AksHciCluster -name akshciclus001
+```
+
 This is fine for evaluation purposes to begin with. <br/>
 There are a number of optional parameters that you can add here if you wish: <br/>
 <br/>
