@@ -125,8 +125,6 @@ kubectl get pods -n default --show-labels
 ## Getting started with Calico
 
 
-
-
 Currently, the default networking option in Microsoft Azure HCI is to use Calico in an overlay networking mode. <br/>
 The IPAM plugin can be queried on the default Installation resource:
 
@@ -142,8 +140,11 @@ kubectl get pods -A | findstr calico
 ```
 <img width="734" alt="Screenshot 2022-06-02 at 14 38 11" src="https://user-images.githubusercontent.com/82048393/171642084-5b9520db-7395-4dc3-8afb-1fef0a739cef.png">
 
+Block traffic for the test voting application we just created:
 
-
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/azure-hci-calico-workshop/main/block-azure-vote-front.yaml
+```
 
 
 
