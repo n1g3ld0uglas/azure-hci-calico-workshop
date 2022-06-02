@@ -163,7 +163,7 @@ Invoke-WebRequest -Uri "https://github.com/projectcalico/calico/releases/downloa
 
 Verify the plugin works.
 ```
-kubectl calico -h
+calicoctl help
 ```
 
 <br/>
