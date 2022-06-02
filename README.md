@@ -7,13 +7,19 @@ Get-AksHciKubernetesVersion
 ```
 
 In the output, you'll see a number of available versions across both Windows and Linux:
-![get_akshcikubernetesversion](https://user-images.githubusercontent.com/82048393/171618828-7fc7352d-d34b-45e2-a101-1b1aeadcfc20.png)
+
+
+<img width="499" alt="Screenshot 2022-06-02 at 14 00 42" src="https://user-images.githubusercontent.com/82048393/171635067-d5f371b0-69ee-48a5-87a3-d225510ced58.png">
+
 
 You can then run the following command to create and deploy a new Kubernetes cluster: <br/>
 (This command will deploy a new Kubernetes cluster named akshciclus001 with the below options)
 ```
 New-AksHciCluster -Name akshciclus001 -nodePoolName linuxnodepool -controlPlaneNodeCount 1 -nodeCount 1 -osType linux
 ```
+
+<img width="1108" alt="Screenshot 2022-06-02 at 14 01 02" src="https://user-images.githubusercontent.com/82048393/171635099-29838052-7985-45fd-a731-d4817d645406.png">
+
 
 - A single Control Plane node (VM) <br/>
 - A single Load Balancer VM <br/>
@@ -40,7 +46,8 @@ The deployment of this Kubernetes workload cluster should take a few minutes, an
 Get-AksHciNodePool -clusterName akshciclus001
 ```
 
-![get_akshcinodepool_sept](https://user-images.githubusercontent.com/82048393/171619576-b8e74940-e2b8-449c-af54-a397209948d6.png)
+<img width="554" alt="Screenshot 2022-06-02 at 14 02 48" src="https://user-images.githubusercontent.com/82048393/171635326-93ffde9b-5ddf-40a3-8f7c-b59408a09ebc.png">
+
 
 
 
