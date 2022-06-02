@@ -121,6 +121,12 @@ kubectl get installation default -o go-template --template {{.spec.cni.ipam.type
 ```
 
 If your cluster is using Calico IPAM, the above command should return a result of ```Calico```.
+This might not work in Azure HCI since the install is managed by Microsoft. Please run this command:
+
+```
+kubectl get pods -A | grep calico
+```
+
 
 ## Install Calicoctl
 We will follow the official docs for installing the ```calicoctl``` utility: <br/>
