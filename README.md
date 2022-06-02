@@ -27,7 +27,90 @@ chmod +x ./calicoctl
 <br/>
 <br/>
 
-## Scenario 1: Migrate from one IP pool to another
+## Install a test application (Storefront)
+
+We provided a deployment file for creating your test application
+```
+kubectl apply -f https://installer.calicocloud.io/storefront-demo.yaml
+```
+
+Confirm your test application is running:
+```
+kubectl get pods -n storefront
+```
+
+<img width="962" alt="Screenshot 2022-05-06 at 11 27 10" src="https://user-images.githubusercontent.com/82048393/167114891-87fed43a-87bd-4bd8-a67e-d3f8f4d55f82.png">
+
+Due to the ephemeral nature of Kubernetes, the IP address of a pod is not long lived. <br/>
+As a result, it makes more sense for us to target pods based on a consistent label schema (not based on IP address):
+
+<img width="1135" alt="Screenshot 2022-05-06 at 11 52 01" src="https://user-images.githubusercontent.com/82048393/167118571-fda5c06e-224e-4a16-a0c0-e22ec82e3697.png">
+
+To see the label schema associated with your storefront pods, run the below command:
+```
+kubectl get pods -n storefront --show-labels
+```
+
+
+## Creating your first network policies
+
+As a best practice, we will implement a zone-based architecture via Calico's Networking & Security Policies <br/>
+Using a zone-based firewall approach allows us to apply the said security policies to the security zones instead of the pods <br/>
+Then, the labelled pods are set as members of the different zones - if they are not in a correct zone, the packets will be dropped.
+
+![container-firewall](https://user-images.githubusercontent.com/82048393/167121017-0e9a68c9-0c50-4063-b211-cfb3c843f866.png)
+
+
+#### Demilitarized Zone (DMZ) Policy
+
+The following example allows ```Ingress``` traffic from the public internet CIDR net ```18.0.0.0/16``` <br/>
+All other Ingress-related traffic will be ```Denied``` - this includes traffic sent to the DMZ from pods within the cluster. <br/>
+<br/>
+It's important to note that the ```DMZ``` labelled pods can ```Egress``` out to the pods within the ```Trusted``` zone, or if it has a label of ```app=logging``` <br/>
+All other outbound traffic from ```DMZ``` zone will be dropped as part of this zero-trust initiative.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/dmz.yaml
+```
+<img width="1135" alt="Screenshot 2022-05-06 at 11 49 04" src="https://user-images.githubusercontent.com/82048393/167117911-83a788bf-c0d5-4433-abd9-dcea98eac8d5.png">
+
+#### Trusted Zone Policy
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/trusted.yaml
+```
+
+<img width="1167" alt="Screenshot 2022-05-06 at 11 59 23" src="https://user-images.githubusercontent.com/82048393/167119339-b4fbd596-11c9-4e94-b368-b593293bf056.png">
+
+#### Restricted Zone Policy
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/restricted.yaml
+```
+
+<img width="1179" alt="Screenshot 2022-05-06 at 12 01 28" src="https://user-images.githubusercontent.com/82048393/167119567-8a967705-f45f-465a-8680-a598f4610b3b.png">
+
+#### Default-Deny Policy
+
+And finally, to absolutely ensure zero-trust workload security is implemented for the storefront namespace, we create a default-deny policy <br/>
+Default deny policy ensures pods without policy (or incorrect policy) are not allowed traffic until appropriate network policy is defined. <br/>
+https://projectcalico.docs.tigera.io/security/kubernetes-default-deny
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/default-deny.yaml
+```
+
+<img width="1186" alt="Screenshot 2022-05-06 at 12 06 18" src="https://user-images.githubusercontent.com/82048393/167120572-d87298cb-7024-4765-a2e9-1c823b0ce1a5.png">
+
+
+<br/>
+<br/>
+<br/>
+
+# IPAM:
+
+### Scenario 1: Migrate from one IP pool to another
 
 Pods are assigned IP addresses from IP pools that you configure in Calico. <br/>
 As the number of pods increase, you may need to increase the number of addresses available for pods to use. <br/>
@@ -227,7 +310,7 @@ We can now proceed to our next configuration test.
 <br/>
 <br/>
 
-## Scenario 2: Change IP pool block size
+### Scenario 2: Change IP pool block size
 https://projectcalico.docs.tigera.io/networking/change-block-size <br/>
 By default, Calico uses an IPAM block size of 64 addresses – /26 for IPv4, and /122 for IPv6. <br/>
 However, the block size can be changed depending on the IP pool address family. <br/>
