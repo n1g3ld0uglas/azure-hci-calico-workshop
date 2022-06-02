@@ -48,6 +48,35 @@ Get-AksHciNodePool -clusterName akshciclus001
 
 <img width="554" alt="Screenshot 2022-06-02 at 14 02 48" src="https://user-images.githubusercontent.com/82048393/171635326-93ffde9b-5ddf-40a3-8f7c-b59408a09ebc.png">
 
+To retrieve the kubeconfig file for the akshciclus001 cluster, you'll need to run the following command. <br/>
+Again, this is run in an administrative PowerShell. You can then accept the prompt when prompted:
+```
+Get-AksHciCredential -Name akshciclus001 -Confirm:$false
+dir $env:USERPROFILE\.kube
+```
+
+<img width="637" alt="Screenshot 2022-06-02 at 14 07 01" src="https://user-images.githubusercontent.com/82048393/171636108-1bb079a8-c245-41b2-bd27-103757308d42.png">
+
+The default output of this command is to create the kubeconfig file in ```%USERPROFILE%\.kube.``` folder, and will name the file config. <br/>
+This config file will overwrite the previous kubeconfig file retrieved earlier. <br/>
+You can also specify a custom location by using ```-configPath c:\myfiles\kubeconfig``` 
+
+## Integrate with Azure Arc
+
+```
+# Login to Azure
+Connect-AzAccount
+
+# Integrate your target cluster with Azure Arc
+Enable-AksHciArcConnection -name akshciclus001
+```
+
+## Explore AKS on Azure Stack HCI
+
+
+
+
+
 
 
 
