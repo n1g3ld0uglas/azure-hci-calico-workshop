@@ -6,6 +6,9 @@ Open PowerShell as Administrator and run the following command to check the avai
 Get-AksHciKubernetesVersion
 ```
 
+In the output, you'll see a number of available versions across both Windows and Linux:
+![get_akshcikubernetesversion](https://user-images.githubusercontent.com/82048393/171618828-7fc7352d-d34b-45e2-a101-1b1aeadcfc20.png)
+
 You can then run the following command to create and deploy a new Kubernetes cluster: <br/>
 (This command will deploy a new Kubernetes cluster named akshciclus001 with the below options)
 ```
@@ -25,8 +28,13 @@ There are a number of optional parameters that you can add here if you wish: <br
 ``` -loadBalancerVmSize ``` - Size of your load balancer VM. Default is Standard_A2_V2 <br/>
 ``` -nodeVmSize ``` - Size of your worker node VM. Default is Standard_K8S3_v  <br/>
 
-In the output, you'll see a number of available versions across both Windows and Linux:
-![get_akshcikubernetesversion](https://user-images.githubusercontent.com/82048393/171618828-7fc7352d-d34b-45e2-a101-1b1aeadcfc20.png)
+The deployment of this Kubernetes workload cluster should take a few minutes, and once complete, should present information about the deployment. <br/> However you can verify the details by running the following command:
+
+```
+Get-AksHciNodePool -clusterName akshciclus001
+```
+
+![get_akshcinodepool_sept](https://user-images.githubusercontent.com/82048393/171619576-b8e74940-e2b8-449c-af54-a397209948d6.png)
 
 
 
