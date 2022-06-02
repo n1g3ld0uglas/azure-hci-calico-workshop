@@ -124,8 +124,13 @@ If your cluster is using Calico IPAM, the above command should return a result o
 This might not work in Azure HCI since the install is managed by Microsoft. Please run this command:
 
 ```
-kubectl get pods -A | grep calico
+kubectl get pods -A | findstr calico
 ```
+<img width="734" alt="Screenshot 2022-06-02 at 14 38 11" src="https://user-images.githubusercontent.com/82048393/171642084-5b9520db-7395-4dc3-8afb-1fef0a739cef.png">
+
+
+
+
 
 
 ## Install Calicoctl
