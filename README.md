@@ -96,7 +96,7 @@ kubectl get pods -n storefront --show-labels
 ```
 
 
-## Creating your first network policies
+# Network Policies
 
 As a best practice, we will implement a zone-based architecture via Calico's Networking & Security Policies <br/>
 Using a zone-based firewall approach allows us to apply the said security policies to the security zones instead of the pods <br/>
@@ -170,6 +170,65 @@ kubectl get globalnetworkpolicies -l projectcalico.org/tier=security
 <br/>
 <br/>
 <br/>
+
+# Encrypt in-cluster pod traffic:
+
+When this feature is enabled, Calico automatically creates and manages WireGuard tunnels between nodes <br/>
+https://projectcalico.docs.tigera.io/security/encrypt-cluster-pod-traffic#before-you-begin <br/> 
+<br/>
+This offers transport-level security for on-the-wire, in-cluster pod traffic. <br/>
+WireGuard provides formally verified secure and performant tunnels without any specialized hardware. <br/>
+<br/>
+For a deep dive in to WireGuard implementation, see this whitepaper: <br/>
+https://www.wireguard.com/papers/wireguard.pdf <br/>
+<br/>
+WireGuard is included in Linux ```5.6+ kernels```, and has been backported to earlier Linux kernels in some Linux distributions. <br/>
+AKS cluster nodes run Ubuntu with a kernel that has WireGuard installed already, so there is no manual installation required. 
+
+```
+kubectl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
+```
+
+### Disable WireGuard for a cluster
+To disable WireGuard on all nodes modify the default Felix configuration. For example:
+```
+./calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":false}}'
+```
+
+### Disable WireGuard for an individual node
+To disable WireGuard on a specific node with WireGuard installed, modify the node-specific Felix configuration <br/>
+e.g: to turn off encryption for pod traffic on node my-node, use the following command:
+
+```
+cat <<EOF | kubectl apply -f -
+apiVersion: projectcalico.org/v3
+kind: FelixConfiguration
+metadata:
+  name: node.my-node
+spec:
+  logSeverityScreen: Info
+  reportingInterval: 0s
+  wireguardEnabled: false
+EOF
+```
+
+With the above command, Calico will not encrypt any of the pod traffic to or from node my-node. <br/>
+To enable encryption for pod traffic on node my-node again:
+```
+./calicoctl patch felixconfiguration node.my-node --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
+```
+
+### Verify configuration
+To verify that the nodes are configured for WireGuard encryption, check the node status set by Felix using calicoctl
+
+```
+   ./calicoctl get node <NODE-NAME> -o yaml
+   ...
+   status:
+     ...
+     wireguardPublicKey: jlkVyQYooZYzI2wFfNhSZez5eWh44yfq1wKVjLvSXgY=
+     ...
+```
 
 # IPAM:
 
