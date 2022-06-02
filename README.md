@@ -152,9 +152,13 @@ kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/azure-hci-calico
 We will follow the official docs for installing the ```calicoctl``` utility: <br/>
 https://projectcalico.docs.tigera.io/maintenance/clis/calicoctl/install <br/>
 <br/>
+
+```
+cd $env:USERPROFILE\.kube
+```
 Use the following command to download the ```calicoctl``` binary.
 ```
-Invoke-WebRequest -Uri "https://github.com/projectcalico/calico/releases/download/v3.23.1/calicoctl-windows-amd64.exe -OutFile "kubectl-calico.exe" 
+Invoke-WebRequest -Uri "https://github.com/projectcalico/calico/releases/download/v3.23.1/calicoctl-windows-amd64.exe" -OutFile "calicoctl.exe"
 ```
 
 Verify the plugin works.
