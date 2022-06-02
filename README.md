@@ -107,6 +107,17 @@ Navigate to that IP address. (Note, it may take a few moments to start)
 
 <img width="1248" alt="Screenshot 2022-06-02 at 14 31 31" src="https://user-images.githubusercontent.com/82048393/171640843-c28fd6b4-c88d-492e-aba8-6b1288d22e73.png">
 
+Find additional information about the nodes your pods are running on and the pod IP's
+```
+kubectl get pods -n default -o wide
+```
+
+Since pods in Kubernetes are ephemeral, we will build policy around their labels:
+
+```
+kubectl get pods -n default --show-labels
+```
+
 
 ## Getting started with Calico
 
