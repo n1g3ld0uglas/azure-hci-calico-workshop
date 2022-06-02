@@ -118,6 +118,9 @@ Since pods in Kubernetes are ephemeral, we will build policy around their labels
 kubectl get pods -n default --show-labels
 ```
 
+<img width="1028" alt="Screenshot 2022-06-02 at 15 05 57" src="https://user-images.githubusercontent.com/82048393/171648544-7b35dcdd-6f58-4e05-9163-64ac4ae646c8.png">
+
+
 
 ## Getting started with Calico
 
@@ -150,12 +153,12 @@ https://projectcalico.docs.tigera.io/maintenance/clis/calicoctl/install <br/>
 <br/>
 Use the following command to download the ```calicoctl``` binary.
 ```
-curl -L https://github.com/projectcalico/calico/releases/download/v3.23.0/calicoctl-linux-amd64 -o calicoctl
+Invoke-WebRequest -Uri "https://github.com/projectcalico/calico/releases/download/v3.23.1/calicoctl-windows-amd64.exe -OutFile "kubectl-calico.exe" 
 ```
 
-Set the file to be executable
+Verify the plugin works.
 ```
-chmod +x ./calicoctl
+kubectl calico -h
 ```
 
 <br/>
