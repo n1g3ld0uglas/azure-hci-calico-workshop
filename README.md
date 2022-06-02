@@ -1,5 +1,35 @@
 # Calico OSS Workshop for Microsoft Azure HCI (Hyper-Converged Infrastructure)
 
+Open PowerShell as Administrator and run the following command to check the available versions of Kubernetes that are currently available:
+```
+# Show available Kubernetes versions
+Get-AksHciKubernetesVersion
+```
+
+You can then run the following command to create and deploy a new Kubernetes cluster: <br/>
+(This command will deploy a new Kubernetes cluster named akshciclus001 with the below options)
+```
+New-AksHciCluster -Name akshciclus001 -nodePoolName linuxnodepool -controlPlaneNodeCount 1 -nodeCount 1 -osType linux
+```
+
+- A single Control Plane node (VM) <br/>
+- A single Load Balancer VM <br/>
+- A single Node Pool called linuxnodepool, containing a single Linux worker node (VM) <br/>  <br/>
+
+This is fine for evaluation purposes to begin with. <br/>
+There are a number of optional parameters that you can add here if you wish: <br/>
+<br/>
+
+``` -kubernetesVersion ``` - by default, the deployment will use the latest, but you can specify a version <br/>
+``` -controlPlaneVmSize ``` - Size of the control plane VM. Default is Standard_A2_v2  <br/>
+``` -loadBalancerVmSize ``` - Size of your load balancer VM. Default is Standard_A2_V2 <br/>
+``` -nodeVmSize ``` - Size of your worker node VM. Default is Standard_K8S3_v  <br/>
+
+In the output, you'll see a number of available versions across both Windows and Linux:
+![get_akshcikubernetesversion](https://user-images.githubusercontent.com/82048393/171618828-7fc7352d-d34b-45e2-a101-1b1aeadcfc20.png)
+
+
+
 Currently, the default networking option in Microsoft Azure HCI is to use Calico in an overlay networking mode. <br/>
 The IPAM plugin can be queried on the default Installation resource:
 
