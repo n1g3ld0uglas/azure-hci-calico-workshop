@@ -104,6 +104,25 @@ kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-
 <img width="1186" alt="Screenshot 2022-05-06 at 12 06 18" src="https://user-images.githubusercontent.com/82048393/167120572-d87298cb-7024-4765-a2e9-1c823b0ce1a5.png">
 
 
+#### Fix issue with denied packets in zone-based architecture
+
+Our zero-trust policies are designed to only allow traffic between pods based on label schema <br/>
+However, we never factored-in those coredns pods into our security pods. This we can whitelist in the security tier:
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/allow-kubedns.yaml
+```
+
+<img width="1200" alt="Screenshot 2022-05-06 at 12 55 54" src="https://user-images.githubusercontent.com/82048393/167127294-c7acaf7d-df23-46ac-bde1-c5ecd679200b.png">
+
+Confirm your Global Network Policy was actually created within the security tier. <br/>
+Again, you can see how the allowed traffic for this newly-created policy in the web UI:
+```
+kubectl get globalnetworkpolicies -l projectcalico.org/tier=security
+```
+
+![Screenshot 2022-05-06 at 12 58 57](https://user-images.githubusercontent.com/82048393/167127472-f2c8e8ed-21fc-4408-bc96-b15ede2db20c.png)
+
 <br/>
 <br/>
 <br/>
