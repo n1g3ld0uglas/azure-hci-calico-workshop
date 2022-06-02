@@ -44,7 +44,7 @@ kubectl get pods -n storefront
 Due to the ephemeral nature of Kubernetes, the IP address of a pod is not long lived. <br/>
 As a result, it makes more sense for us to target pods based on a consistent label schema (not based on IP address):
 
-<img width="1135" alt="Screenshot 2022-05-06 at 11 52 01" src="https://user-images.githubusercontent.com/82048393/167118571-fda5c06e-224e-4a16-a0c0-e22ec82e3697.png">
+<img width="935" height="340" alt="Screenshot 2022-05-06 at 11 52 01" src="https://user-images.githubusercontent.com/82048393/167118571-fda5c06e-224e-4a16-a0c0-e22ec82e3697.png">
 
 To see the label schema associated with your storefront pods, run the below command:
 ```
