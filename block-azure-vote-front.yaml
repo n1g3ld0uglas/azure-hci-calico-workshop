@@ -1,0 +1,16 @@
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: block-azure-vote-front
+  namespace: default
+spec:
+  selector: app == 'azure-vote-front'
+  types:
+  - Ingress
+  - Egress
+  ingress:
+  - action: Deny
+    protocol: TCP
+  egress:
+  - action: Deny
+    protocol: TCP   
