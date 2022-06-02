@@ -61,6 +61,8 @@ The default output of this command is to create the kubeconfig file in ```%USERP
 This config file will overwrite the previous kubeconfig file retrieved earlier. <br/>
 You can also specify a custom location by using ```-configPath c:\myfiles\kubeconfig``` 
 
+
+
 ## Integrate with Azure Arc
 
 ```
@@ -71,11 +73,42 @@ Connect-AzAccount
 Enable-AksHciArcConnection -name akshciclus001
 ```
 
-## Explore AKS on Azure Stack HCI
+<img width="812" alt="Screenshot 2022-06-02 at 14 20 22" src="https://user-images.githubusercontent.com/82048393/171638708-75bf23ce-0695-41fa-a7d7-ec92c4b204fa.png">
+
+Confirm all nodes are in ```READY``` status. <br/>
+At this point I swapped over to command prompt:
+
+```
+kubectl get nodes -o wide
+```
+
+## Creating a visible web application
+
+Next, from the same command prompt shell, run the following command to deploy the application directly from GitHub:
+```
+kubectl apply -f https://raw.githubusercontent.com/Azure/aks-hci/main/eval/yaml/azure-vote.yaml
+```
 
 
 
+<img width="1290" alt="Screenshot 2022-06-02 at 14 26 03" src="https://user-images.githubusercontent.com/82048393/171639838-4f772c24-803c-4073-b1c4-972c5cdd815e.png">
 
+Next, run the following command to monitor the progress of the deployment (using the --watch argument):
+```
+kubectl get service azure-vote-front --watch
+```
+
+<img width="1290" alt="Screenshot 2022-06-02 at 14 27 23" src="https://user-images.githubusercontent.com/82048393/171640006-07b0e8f0-3512-44da-ac14-a31a93ba2ae9.png">
+
+
+In our case, you can see that the service has been allocated the ```192.168.0.152``` IP address. <br/>
+At this point, you should then be able to open Microsoft Edge and accepting default settings <br/> 
+Navigate to that IP address. (Note, it may take a few moments to start)
+
+<img width="1248" alt="Screenshot 2022-06-02 at 14 31 31" src="https://user-images.githubusercontent.com/82048393/171640843-c28fd6b4-c88d-492e-aba8-6b1288d22e73.png">
+
+
+## Getting started with Calico
 
 
 
