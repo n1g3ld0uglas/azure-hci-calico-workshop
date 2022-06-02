@@ -1,4 +1,4 @@
-# azure-hci-calico-workshop
+# Calico OSS Workshop for Microsoft Azure HCI (Hyper-Converged Infrastructure)
 
 Currently, the default networking option in Microsoft Azure HCI is to use Calico in an overlay networking mode. <br/>
 The IPAM plugin can be queried on the default Installation resource:
