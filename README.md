@@ -198,141 +198,6 @@ To see the label schema associated with your storefront pods, run the below comm
 kubectl get pods -n storefront --show-labels
 ```
 
-
-# Network Policies
-
-As a best practice, we will implement a zone-based architecture via Calico's Networking & Security Policies <br/>
-Using a zone-based firewall approach allows us to apply the said security policies to the security zones instead of the pods <br/>
-Then, the labelled pods are set as members of the different zones - if they are not in a correct zone, the packets will be dropped.
-
-![container-firewall](https://user-images.githubusercontent.com/82048393/167121017-0e9a68c9-0c50-4063-b211-cfb3c843f866.png)
-
-
-#### Demilitarized Zone (DMZ) Policy
-
-The following example allows ```Ingress``` traffic from the public internet CIDR net ```18.0.0.0/16``` <br/>
-All other Ingress-related traffic will be ```Denied``` - this includes traffic sent to the DMZ from pods within the cluster. <br/>
-<br/>
-It's important to note that the ```DMZ``` labelled pods can ```Egress``` out to the pods within the ```Trusted``` zone, or if it has a label of ```app=logging``` <br/>
-All other outbound traffic from ```DMZ``` zone will be dropped as part of this zero-trust initiative.
-
-```
-kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/dmz.yaml
-```
-<img width="1135" alt="Screenshot 2022-05-06 at 11 49 04" src="https://user-images.githubusercontent.com/82048393/167117911-83a788bf-c0d5-4433-abd9-dcea98eac8d5.png">
-
-#### Trusted Zone Policy
-
-```
-kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/trusted.yaml
-```
-
-<img width="1167" alt="Screenshot 2022-05-06 at 11 59 23" src="https://user-images.githubusercontent.com/82048393/167119339-b4fbd596-11c9-4e94-b368-b593293bf056.png">
-
-#### Restricted Zone Policy
-
-```
-kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/restricted.yaml
-```
-
-<img width="1179" alt="Screenshot 2022-05-06 at 12 01 28" src="https://user-images.githubusercontent.com/82048393/167119567-8a967705-f45f-465a-8680-a598f4610b3b.png">
-
-#### Default-Deny Policy
-
-And finally, to absolutely ensure zero-trust workload security is implemented for the storefront namespace, we create a default-deny policy <br/>
-Default deny policy ensures pods without policy (or incorrect policy) are not allowed traffic until appropriate network policy is defined. <br/>
-https://projectcalico.docs.tigera.io/security/kubernetes-default-deny
-
-
-```
-kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/default-deny.yaml
-```
-
-<img width="1186" alt="Screenshot 2022-05-06 at 12 06 18" src="https://user-images.githubusercontent.com/82048393/167120572-d87298cb-7024-4765-a2e9-1c823b0ce1a5.png">
-
-
-#### Fix issue with denied packets in zone-based architecture
-
-Our zero-trust policies are designed to only allow traffic between pods based on label schema <br/>
-However, we never factored-in those coredns pods into our security pods. This we can whitelist in the security tier:
-
-```
-kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/allow-kubedns.yaml
-```
-
-<img width="1200" alt="Screenshot 2022-05-06 at 12 55 54" src="https://user-images.githubusercontent.com/82048393/167127294-c7acaf7d-df23-46ac-bde1-c5ecd679200b.png">
-
-Confirm your Global Network Policy was actually created within the security tier. <br/>
-Again, you can see how the allowed traffic for this newly-created policy in the web UI:
-```
-kubectl get globalnetworkpolicies -l projectcalico.org/tier=security
-```
-
-![Screenshot 2022-05-06 at 12 58 57](https://user-images.githubusercontent.com/82048393/167127472-f2c8e8ed-21fc-4408-bc96-b15ede2db20c.png)
-
-<br/>
-<br/>
-<br/>
-
-# Encrypt in-cluster pod traffic:
-
-When this feature is enabled, Calico automatically creates and manages WireGuard tunnels between nodes <br/>
-https://projectcalico.docs.tigera.io/security/encrypt-cluster-pod-traffic#before-you-begin <br/> 
-<br/>
-This offers transport-level security for on-the-wire, in-cluster pod traffic. <br/>
-WireGuard provides formally verified secure and performant tunnels without any specialized hardware. <br/>
-<br/>
-For a deep dive in to WireGuard implementation, see this whitepaper: <br/>
-https://www.wireguard.com/papers/wireguard.pdf <br/>
-<br/>
-WireGuard is included in Linux ```5.6+ kernels```, and has been backported to earlier Linux kernels in some Linux distributions. <br/>
-AKS cluster nodes run Ubuntu with a kernel that has WireGuard installed already, so there is no manual installation required. 
-
-```
-kubectl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
-```
-
-### Disable WireGuard for a cluster
-To disable WireGuard on all nodes modify the default Felix configuration. For example:
-```
-./calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":false}}'
-```
-
-### Disable WireGuard for an individual node
-To disable WireGuard on a specific node with WireGuard installed, modify the node-specific Felix configuration <br/>
-e.g: to turn off encryption for pod traffic on node my-node, use the following command:
-
-```
-cat <<EOF | kubectl apply -f -
-apiVersion: projectcalico.org/v3
-kind: FelixConfiguration
-metadata:
-  name: node.my-node
-spec:
-  logSeverityScreen: Info
-  reportingInterval: 0s
-  wireguardEnabled: false
-EOF
-```
-
-With the above command, Calico will not encrypt any of the pod traffic to or from node my-node. <br/>
-To enable encryption for pod traffic on node my-node again:
-```
-./calicoctl patch felixconfiguration node.my-node --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
-```
-
-### Verify configuration
-To verify that the nodes are configured for WireGuard encryption, check the node status set by Felix using calicoctl
-
-```
-   ./calicoctl get node <NODE-NAME> -o yaml
-   ...
-   status:
-     ...
-     wireguardPublicKey: jlkVyQYooZYzI2wFfNhSZez5eWh44yfq1wKVjLvSXgY=
-     ...
-```
-
 # IPAM:
 
 ### Scenario 1: Migrate from one IP pool to another
@@ -720,6 +585,145 @@ Your cluster should now be in the original state you left it in.
 <br/>
 <br/>
 <br/>
+
+
+# Network Policies
+
+As a best practice, we will implement a zone-based architecture via Calico's Networking & Security Policies <br/>
+Using a zone-based firewall approach allows us to apply the said security policies to the security zones instead of the pods <br/>
+Then, the labelled pods are set as members of the different zones - if they are not in a correct zone, the packets will be dropped.
+
+![container-firewall](https://user-images.githubusercontent.com/82048393/167121017-0e9a68c9-0c50-4063-b211-cfb3c843f866.png)
+
+
+#### Demilitarized Zone (DMZ) Policy
+
+The following example allows ```Ingress``` traffic from the public internet CIDR net ```18.0.0.0/16``` <br/>
+All other Ingress-related traffic will be ```Denied``` - this includes traffic sent to the DMZ from pods within the cluster. <br/>
+<br/>
+It's important to note that the ```DMZ``` labelled pods can ```Egress``` out to the pods within the ```Trusted``` zone, or if it has a label of ```app=logging``` <br/>
+All other outbound traffic from ```DMZ``` zone will be dropped as part of this zero-trust initiative.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/dmz.yaml
+```
+<img width="1135" alt="Screenshot 2022-05-06 at 11 49 04" src="https://user-images.githubusercontent.com/82048393/167117911-83a788bf-c0d5-4433-abd9-dcea98eac8d5.png">
+
+#### Trusted Zone Policy
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/trusted.yaml
+```
+
+<img width="1167" alt="Screenshot 2022-05-06 at 11 59 23" src="https://user-images.githubusercontent.com/82048393/167119339-b4fbd596-11c9-4e94-b368-b593293bf056.png">
+
+#### Restricted Zone Policy
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/restricted.yaml
+```
+
+<img width="1179" alt="Screenshot 2022-05-06 at 12 01 28" src="https://user-images.githubusercontent.com/82048393/167119567-8a967705-f45f-465a-8680-a598f4610b3b.png">
+
+#### Default-Deny Policy
+
+And finally, to absolutely ensure zero-trust workload security is implemented for the storefront namespace, we create a default-deny policy <br/>
+Default deny policy ensures pods without policy (or incorrect policy) are not allowed traffic until appropriate network policy is defined. <br/>
+https://projectcalico.docs.tigera.io/security/kubernetes-default-deny
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/default-deny.yaml
+```
+
+<img width="1186" alt="Screenshot 2022-05-06 at 12 06 18" src="https://user-images.githubusercontent.com/82048393/167120572-d87298cb-7024-4765-a2e9-1c823b0ce1a5.png">
+
+
+#### Fix issue with denied packets in zone-based architecture
+
+Our zero-trust policies are designed to only allow traffic between pods based on label schema <br/>
+However, we never factored-in those coredns pods into our security pods. This we can whitelist in the security tier:
+
+```
+kubectl apply -f https://raw.githubusercontent.com/n1g3ld0uglas/rancher-desktop-calico-policies/main/allow-kubedns.yaml
+```
+
+<img width="1200" alt="Screenshot 2022-05-06 at 12 55 54" src="https://user-images.githubusercontent.com/82048393/167127294-c7acaf7d-df23-46ac-bde1-c5ecd679200b.png">
+
+Confirm your Global Network Policy was actually created within the security tier. <br/>
+Again, you can see how the allowed traffic for this newly-created policy in the web UI:
+```
+kubectl get globalnetworkpolicies -l projectcalico.org/tier=security
+```
+
+![Screenshot 2022-05-06 at 12 58 57](https://user-images.githubusercontent.com/82048393/167127472-f2c8e8ed-21fc-4408-bc96-b15ede2db20c.png)
+
+<br/>
+<br/>
+<br/>
+
+# Encrypt in-cluster pod traffic:
+
+When this feature is enabled, Calico automatically creates and manages WireGuard tunnels between nodes <br/>
+https://projectcalico.docs.tigera.io/security/encrypt-cluster-pod-traffic#before-you-begin <br/> 
+<br/>
+This offers transport-level security for on-the-wire, in-cluster pod traffic. <br/>
+WireGuard provides formally verified secure and performant tunnels without any specialized hardware. <br/>
+<br/>
+For a deep dive in to WireGuard implementation, see this whitepaper: <br/>
+https://www.wireguard.com/papers/wireguard.pdf <br/>
+<br/>
+WireGuard is included in Linux ```5.6+ kernels```, and has been backported to earlier Linux kernels in some Linux distributions. <br/>
+AKS cluster nodes run Ubuntu with a kernel that has WireGuard installed already, so there is no manual installation required. 
+
+```
+kubectl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
+```
+
+
+
+### Disable WireGuard for a cluster
+To disable WireGuard on all nodes modify the default Felix configuration. For example:
+```
+./calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":false}}'
+```
+
+### Disable WireGuard for an individual node
+To disable WireGuard on a specific node with WireGuard installed, modify the node-specific Felix configuration <br/>
+e.g: to turn off encryption for pod traffic on node my-node, use the following command:
+
+```
+cat <<EOF | kubectl apply -f -
+apiVersion: projectcalico.org/v3
+kind: FelixConfiguration
+metadata:
+  name: node.my-node
+spec:
+  logSeverityScreen: Info
+  reportingInterval: 0s
+  wireguardEnabled: false
+EOF
+```
+
+With the above command, Calico will not encrypt any of the pod traffic to or from node my-node. <br/>
+To enable encryption for pod traffic on node my-node again:
+```
+./calicoctl patch felixconfiguration node.my-node --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
+```
+
+### Verify configuration
+To verify that the nodes are configured for WireGuard encryption, check the node status set by Felix using calicoctl
+
+```
+   ./calicoctl get node <NODE-NAME> -o yaml
+   ...
+   status:
+     ...
+     wireguardPublicKey: jlkVyQYooZYzI2wFfNhSZez5eWh44yfq1wKVjLvSXgY=
+     ...
+```
+
+
 
 
 ## Calico Certified Courses
